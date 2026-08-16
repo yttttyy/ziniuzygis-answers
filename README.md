@@ -23,9 +23,9 @@ Interface available in **English, Russian and Lithuanian**.
 
 The panel shows up by itself on a quiz page:
 
-- **answer found** — the correct option gets a green outline and a checkmark, and the panel
+- **answer found** - the correct option gets a green outline and a checkmark, and the panel
   shows the answer text with the match confidence;
-- **not in the database** — buttons to add the question and to copy it;
+- **not in the database** - buttons to add the question and to copy it;
 - click the panel header to collapse it.
 
 Questions with several correct answers are supported — every matching option is highlighted.
@@ -41,7 +41,7 @@ Click several options for multi-answer questions. Saved questions are found imme
 Click the extension icon to open the full list: search, edit, delete, 💾 export to JSON,
 ⬆ import from JSON, and the language switcher.
 
-Search ignores Lithuanian diacritics — `zaliosios` finds `žaliosios`.
+Search ignores Lithuanian diacritics - `zaliosios` finds `žaliosios`.
 Import only **adds missing** questions; it never overwrites or deletes what you already have.
 
 ---
@@ -124,7 +124,7 @@ web/
 
 Question text on the page rarely matches the stored text character for character, so the
 comparison is fuzzy. Lithuanian diacritics are folded to ASCII, punctuation is stripped, and
-the texts are compared as word sets — the Dice coefficient, plus a bonus when one text contains
+the texts are compared as word sets - the Dice coefficient, plus a bonus when one text contains
 the other. The threshold is `0.5`, set in [`extension/match.js`](extension/match.js).
 
 When two entries score the same, the one with the higher Dice coefficient wins. Without that
