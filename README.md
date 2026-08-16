@@ -48,11 +48,32 @@ Import only **adds missing** questions; it never overwrites or deletes what you 
 
 ---
 
-## Updating the question set
+## Getting newer questions
 
 Everything you add through the extension is saved in `chrome.storage` right away — you never
-need to touch any file for your own use. The steps below are only for updating the copy that
-ships in this repository.
+need to touch any file for your own use. To pull in questions other people have added since
+you installed, pick either route.
+
+**Import the published database** (no reinstall):
+
+1. Open the [raw `data/answers.json`](https://raw.githubusercontent.com/yttttyy/ziniuzygis-answers/main/data/answers.json)
+   and save it (`Ctrl+S`)
+2. Click the extension icon → **⬆** → pick the file
+
+Only missing questions are added; everything you added yourself stays untouched.
+
+> Use the **Raw** view (or the *Download raw file* button). Saving the normal GitHub file page
+> stores an HTML document, and the import will reject it as an invalid file.
+
+**Or reinstall the extension:** download the repository again, replace your `extension` folder
+and press **↻** on the extension card in `chrome://extensions`. Missing questions are topped up
+automatically, again without losing your own.
+
+---
+
+## Updating the published question set
+
+The steps below are only for updating the copy that ships in this repository.
 
 The question set lives in three places that must stay in sync:
 
