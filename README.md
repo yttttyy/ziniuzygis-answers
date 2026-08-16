@@ -1,4 +1,4 @@
-# Žinių žygis — Answer Base
+# Žinių žygis - Answer Base
 
 Chrome extension for [ziniuzygis.lt](https://ziniuzygis.lt): it reads the question on the page,
 looks it up in a local database of **700+ questions**, and highlights the correct option in green.
