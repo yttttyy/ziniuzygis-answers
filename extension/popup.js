@@ -192,7 +192,7 @@
         var k = norm(q);
         if (!k || have[k]) return;
         have[k] = true;
-        data.push({ id: uid(), q: q, a: a.trim(), source: x.source || "mine" });
+        data.push({ id: uid(), q: q, a: a.trim(), source: x.source || "imported" });
         added++;
       });
 
