@@ -14,9 +14,9 @@ Interface available in **English, Russian and Lithuanian**.
 2. Open `chrome://extensions`
 3. Turn on **Developer mode** (top-right toggle)
 4. Click **Load unpacked** and select the **`extension`** folder
-5. Open [ziniuzygis.lt](https://ziniuzygis.lt) — the panel appears in the bottom-right corner
+5. Open [ziniuzygis.lt](https://ziniuzygis.lt) - the panel appears in the bottom-right corner
 
-> Select the **`extension`** folder, not the repository root — otherwise Chrome will not
+> Select the **`extension`** folder, not the repository root - otherwise Chrome will not
 > find `manifest.json`.
 
 ## Usage
@@ -28,12 +28,12 @@ The panel shows up by itself on a quiz page:
 - **not in the database** - buttons to add the question and to copy it;
 - click the panel header to collapse it.
 
-Questions with several correct answers are supported — every matching option is highlighted.
+Questions with several correct answers are supported - every matching option is highlighted.
 
 ### Adding a question
 
 Press **＋ Add to database**. The question is already filled in from the page, and the on-page
-options are listed as buttons — once the quiz reveals the correct one, just click it.
+options are listed as buttons - once the quiz reveals the correct one, just click it.
 Click several options for multi-answer questions. Saved questions are found immediately.
 
 ### The database window
