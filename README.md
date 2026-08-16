@@ -4,13 +4,13 @@ Chrome extension for [ziniuzygis.lt](https://ziniuzygis.lt): it reads the questi
 looks it up in a local database of **700+ questions**, and highlights the correct option in green.
 You can copy any question in one click and add new question/answer pairs without leaving the page.
 
-Interface available in **Русский / English / Lietuvių**.
+Interface available in **English, Russian and Lithuanian**.
 
 ![icon](extension/icons/icon48.png)
 
 ---
 
-## Install / Установка / Diegimas
+## Install
 
 1. Download this repository (**Code → Download ZIP**) and unpack it, or `git clone`.
 2. Open `chrome://extensions`
@@ -18,58 +18,66 @@ Interface available in **Русский / English / Lietuvių**.
 4. Click **Load unpacked** and select the **`extension`** folder
 5. Open [ziniuzygis.lt](https://ziniuzygis.lt) — the panel appears in the bottom-right corner
 
-> Select **`extension`**, not the repository root — otherwise Chrome will not find `manifest.json`.
+> Select the **`extension`** folder, not the repository root — otherwise Chrome will not
+> find `manifest.json`.
+
+## Usage
+
+The panel shows up by itself on a quiz page:
+
+- **answer found** — the correct option gets a green outline and a checkmark, and the panel
+  shows the answer text with the match confidence;
+- **not in the database** — buttons to add the question and to copy it;
+- click the panel header to collapse it.
+
+Questions with several correct answers are supported — every matching option is highlighted.
+
+### Adding a question
+
+Press **＋ Add to database**. The question is already filled in from the page, and the on-page
+options are listed as buttons — once the quiz reveals the correct one, just click it.
+Click several options for multi-answer questions. Saved questions are found immediately.
+
+### The database window
+
+Click the extension icon to open the full list: search, edit, delete, 💾 export to JSON,
+⬆ import from JSON, and the language switcher.
+
+Search ignores Lithuanian diacritics — `zaliosios` finds `žaliosios`.
+Import only **adds missing** questions; it never overwrites or deletes what you already have.
 
 ---
 
-## Русский
+## Updating the question set
 
-**На сайте викторины** панель появляется сама в правом нижнем углу:
+Everything you add through the extension is saved in `chrome.storage` right away — you never
+need to touch any file for your own use. The steps below are only for updating the copy that
+ships in this repository.
 
-- **ответ найден** — верный вариант обводится зелёным с галочкой, в панели текст ответа
-  и процент совпадения;
-- **ответа нет в базе** — кнопки «Добавить в базу» и «Копировать вопрос»;
-- клик по шапке панели сворачивает её.
+The question set lives in three places that must stay in sync:
 
-**Добавление нового вопроса.** Нажмите «＋ Добавить в базу»: вопрос уже подставлен со страницы,
-а варианты ответов выведены списком — когда викторина покажет правильный, просто кликните по нему.
-Для вопросов с несколькими верными ответами можно отметить сразу несколько.
+| File | Purpose |
+|------|---------|
+| `extension/db.js` | what a fresh install is seeded with |
+| `data/answers.json` | the human-readable published copy |
+| `extension/background.js` | `SEED_VERSION`, which triggers top-up on existing installs |
 
-**Иконка расширения** — вся база: поиск, редактирование, удаление, 💾 выгрузка в JSON,
-⬆ загрузка из JSON и переключатель языка. Поиск не требует литовской диакритики:
-`zaliosios` находит `žaliosios`.
+Dropping a file into `data/` on its own changes nothing — the extension never reads it.
+Use the script instead:
 
-## English
+```bash
+# 1. In the extension window press 💾 to export a backup
+# 2. Feed that backup to the script
+node tools/update-db.js ~/Downloads/ziniuzygis-atsakymai.json
+```
 
-The panel shows up automatically on a quiz page:
+It merges the backup into the existing set, de-duplicates by question text (ignoring
+diacritics), rewrites `db.js` and `answers.json`, and bumps `SEED_VERSION`. Existing answers
+are never overwritten — a backup can only add questions or fill in an empty answer.
+Both schemas are accepted: `{q, a}` (extension export) and `{question, answer}`.
 
-- **answer found** — the correct option gets a green outline and a checkmark, the panel shows
-  the answer text and the match confidence;
-- **not in the database** — buttons to add it and to copy the question;
-- click the panel header to collapse it.
-
-**Adding a question.** Press “＋ Add to database”: the question is already filled in from the page
-and the on-page options are listed as buttons — once the quiz reveals the correct one, just click it.
-Multiple correct options are supported.
-
-The **extension icon** opens the full database: search, edit, delete, export/import JSON
-and a language switcher. Search ignores Lithuanian diacritics — `zaliosios` finds `žaliosios`.
-
-## Lietuvių
-
-Skydelis atsiranda automatiškai viktorinos puslapyje:
-
-- **atsakymas rastas** — teisingas variantas apvedamas žaliai su varnele, skydelyje matomas
-  atsakymo tekstas ir atitikmens procentas;
-- **klausimo bazėje nėra** — mygtukai pridėti jį ir nukopijuoti klausimą;
-- spustelėjus skydelio antraštę, jis suskleidžiamas.
-
-**Klausimo pridėjimas.** Paspauskite „＋ Pridėti į bazę“: klausimas jau įrašytas iš puslapio,
-o variantai pateikti mygtukų sąrašu — kai viktorina parodys teisingą, tiesiog jį spustelėkite.
-Galimi keli teisingi atsakymai.
-
-**Plėtinio piktograma** atveria visą bazę: paieška, redagavimas, trynimas, JSON eksportas/importas
-ir kalbos perjungiklis. Paieškai lietuviškos diakritikos nereikia: `zaliosios` randa `žaliosios`.
+Then commit the three changed files. Users get the new questions on the next extension update,
+**without losing anything they added themselves**.
 
 ---
 
@@ -82,21 +90,27 @@ extension/        Chrome extension (MV3) — load this folder
   content.css
   popup.html/js   database window
   match.js        text normalisation + fuzzy matching
-  i18n.js         RU / EN / LT translations
+  i18n.js         EN / RU / LT translations
   db.js           built-in set of 700+ questions
   background.js   seeding and top-up on update
 data/
   answers.json    the same database as plain JSON
+tools/
+  update-db.js    rebuilds the database from a backup
 web/
   index.html      standalone HTML viewer (works without the extension)
 ```
 
 ## How matching works
 
-Question text on the page rarely matches the stored text character for character, so comparison
-is fuzzy: Lithuanian diacritics are folded to ASCII, punctuation is stripped, and the texts are
-compared as word sets (Dice coefficient plus a substring bonus). The threshold is `0.5`,
-set in [`extension/match.js`](extension/match.js).
+Question text on the page rarely matches the stored text character for character, so the
+comparison is fuzzy. Lithuanian diacritics are folded to ASCII, punctuation is stripped, and
+the texts are compared as word sets — the Dice coefficient, plus a bonus when one text contains
+the other. The threshold is `0.5`, set in [`extension/match.js`](extension/match.js).
+
+When two entries score the same, the one with the higher Dice coefficient wins. Without that
+tie-break, short fragments such as *“Nepamiršk, kad gali rinktis net kelis atsakymus!”* are
+fully contained in any longer question, score the same 1.0, and hijack other questions' answers.
 
 The same matcher maps the stored answer onto the on-page options, which is what makes
 multi-answer questions highlight correctly.
@@ -104,8 +118,6 @@ multi-answer questions highlight correctly.
 ## Notes
 
 - Data lives in `chrome.storage.local`, shared between the panel and the database window.
-- Updating the extension tops up missing questions from `db.js` **without touching**
-  anything you added yourself.
 - Image-based questions (`image_quiz`) have no option text, so they cannot be highlighted —
   the answer is shown in the panel only.
 - Site selectors (`.challenge-question`, `.btn-challenge-answer`) come from the Challenger
