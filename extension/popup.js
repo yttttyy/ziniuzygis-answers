@@ -183,13 +183,16 @@
 
       var added = 0;
       arr.forEach(function (x) {
-        if (!x || typeof x.q !== "string") return;
-        var q = x.q.trim();
+        if (!x) return;
+        // принимаем оба формата: внутренний {q,a} и публикуемый {question,answer}
+        var q = typeof x.q === "string" ? x.q : (typeof x.question === "string" ? x.question : "");
+        var a = typeof x.a === "string" ? x.a : (typeof x.answer === "string" ? x.answer : "");
+        q = q.trim();
         if (!q) return;
         var k = norm(q);
         if (!k || have[k]) return;
         have[k] = true;
-        data.push({ id: uid(), q: q, a: (x.a || "").trim(), source: x.source || "mine" });
+        data.push({ id: uid(), q: q, a: a.trim(), source: x.source || "mine" });
         added++;
       });
 
