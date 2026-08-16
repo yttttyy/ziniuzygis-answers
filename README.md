@@ -6,8 +6,6 @@ You can copy any question in one click and add new question/answer pairs without
 
 Interface available in **English, Russian and Lithuanian**.
 
-![icon](extension/icons/icon48.png)
-
 ---
 
 ## Install
