@@ -48,7 +48,7 @@ Import only **adds missing** questions; it never overwrites or deletes what you 
 
 ## Getting newer questions
 
-Everything you add through the extension is saved in `chrome.storage` right away — you never
+Everything you add through the extension is saved in `chrome.storage` right away - you never
 need to touch any file for your own use. To pull in questions other people have added since
 you installed, pick either route.
 
