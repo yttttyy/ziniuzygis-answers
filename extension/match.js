@@ -27,7 +27,8 @@
     // диакритика прочих языков
     out = out.normalize("NFD").replace(COMBINING, "");
     out = out.replace(/[«»„“”"'`’‘]/g, " ");
-    out = out.replace(/[^a-z0-9%]+/g, " ");
+    // оставляем латиницу, кириллицу и цифры; остальное — разделители
+    out = out.replace(/[^a-z0-9а-яё%]+/g, " ");
     return out.replace(/\s+/g, " ").trim();
   }
 
@@ -41,16 +42,17 @@
     });
   }
 
-  /* Коэффициент Дайса по множествам токенов + бонус за вхождение подстроки.
-     Возвращает 0..1 */
-  function score(a, b) {
+  /* Подробная оценка похожести двух текстов.
+     score    — итог 0..1 (учитывает и вхождение более короткого текста в длинный)
+     dice     — сбалансированность совпадения; нужен для разрешения ничьих */
+  function scoreDetail(a, b) {
     var na = normalize(a), nb = normalize(b);
-    if (!na || !nb) return 0;
-    if (na === nb) return 1;
+    if (!na || !nb) return { score: 0, dice: 0 };
+    if (na === nb) return { score: 1, dice: 1 };
 
     var ta = new Set(tokens(a));
     var tb = new Set(tokens(b));
-    if (!ta.size || !tb.size) return 0;
+    if (!ta.size || !tb.size) return { score: 0, dice: 0 };
 
     var inter = 0;
     ta.forEach(function (t) { if (tb.has(t)) inter++; });
@@ -63,17 +65,27 @@
     var bonus = 0;
     if (na.length > 12 && (na.indexOf(nb) >= 0 || nb.indexOf(na) >= 0)) bonus = 0.25;
 
-    return Math.min(1, Math.max(dice, coverage * 0.85) + bonus);
+    return { score: Math.min(1, Math.max(dice, coverage * 0.85) + bonus), dice: dice };
   }
 
+  function score(a, b) { return scoreDetail(a, b).score; }
+
   /* Лучшее совпадение из списка записей базы.
-     items: [{q, a, ...}]  → {entry, score, index} | null */
+     items: [{q, a, ...}]  → {entry, score, index} | null
+
+     При равном score побеждает запись с большим dice. Без этого короткие
+     обрывки вроде «Nepamiršk, kad gali rinktis net kelis atsakymus!»
+     полностью покрываются любым длинным вопросом, набирают те же 1.0
+     и перехватывают чужие ответы. */
   function bestMatch(text, items, threshold) {
     var th = typeof threshold === "number" ? threshold : 0.5;
     var best = null;
     for (var i = 0; i < items.length; i++) {
-      var s = score(text, items[i].q);
-      if (!best || s > best.score) best = { entry: items[i], score: s, index: i };
+      var d = scoreDetail(text, items[i].q);
+      if (!best || d.score > best.score ||
+          (d.score === best.score && d.dice > best.dice)) {
+        best = { entry: items[i], score: d.score, dice: d.dice, index: i };
+      }
     }
     if (best && best.score >= th) return best;
     return null;
@@ -96,6 +108,7 @@
     normalize: normalize,
     tokens: tokens,
     score: score,
+    scoreDetail: scoreDetail,
     bestMatch: bestMatch,
     bestOption: bestOption
   };
