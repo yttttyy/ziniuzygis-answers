@@ -81,7 +81,7 @@ The question set lives in three places that must stay in sync:
 | `data/answers.json` | the human-readable published copy |
 | `extension/background.js` | `SEED_VERSION`, which triggers top-up on existing installs |
 
-Dropping a file into `data/` on its own changes nothing — the extension never reads it.
+Dropping a file into `data/` on its own changes nothing - the extension never reads it.
 Use the script instead:
 
 ```bash
