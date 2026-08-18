@@ -55,6 +55,15 @@
       t_q_copied: "Вопрос скопирован",
       t_a_copied: "Ответ скопирован",
       t_added_db: "Добавлено в базу ✓",
+      pts_now: "очки:",
+      pts_total: "всего:",
+      acc_unknown: "аккаунт не распознан",
+      acc_prompt: "Имя аккаунта (для учёта очков):",
+      mute: "Выключить звук сайта",
+      points_title: "Очки по аккаунтам",
+      points_empty: "Пока ничего не засчитано",
+      points_reset: "Сбросить учёт очков",
+      points_confirm: "Сбросить очки по всем аккаунтам?",
       lang_label: "Язык"
     },
 
@@ -109,6 +118,15 @@
       t_q_copied: "Question copied",
       t_a_copied: "Answer copied",
       t_added_db: "Added to the database ✓",
+      pts_now: "points:",
+      pts_total: "total:",
+      acc_unknown: "account not recognised",
+      acc_prompt: "Account name (for points tracking):",
+      mute: "Mute the site",
+      points_title: "Points per account",
+      points_empty: "Nothing recorded yet",
+      points_reset: "Reset points tracking",
+      points_confirm: "Reset points for every account?",
       lang_label: "Language"
     },
 
@@ -163,6 +181,15 @@
       t_q_copied: "Klausimas nukopijuotas",
       t_a_copied: "Atsakymas nukopijuotas",
       t_added_db: "Pridėta į bazę ✓",
+      pts_now: "taškai:",
+      pts_total: "iš viso:",
+      acc_unknown: "paskyra neatpažinta",
+      acc_prompt: "Paskyros vardas (taškų apskaitai):",
+      mute: "Išjungti svetainės garsą",
+      points_title: "Taškai pagal paskyras",
+      points_empty: "Kol kas nieko neužfiksuota",
+      points_reset: "Išvalyti taškų apskaitą",
+      points_confirm: "Išvalyti taškus visose paskyrose?",
       lang_label: "Kalba"
     }
   };
