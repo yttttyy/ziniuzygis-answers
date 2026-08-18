@@ -6,6 +6,9 @@
   "use strict";
 
   var KEY = "qa_db_v1";
+  var PTS_KEY = "qa_points";       // { accountKey: {points, label, updated} }
+  var MUTE_KEY = "qa_mute";        // глушить ли звук сайта
+  var ACC_KEY = "qa_account_name"; // имя аккаунта, заданное вручную
   var HL = "qa-ext-correct";
 
   // Селекторы сайта (подтверждены по CSS-бандлу платформы Challenger)
@@ -55,9 +58,11 @@
   function loadDb() {
     var LK = window.QAI18n.STORAGE_KEY;
     return new Promise(function (resolve) {
-      chrome.storage.local.get([KEY, LK], function (got) {
+      chrome.storage.local.get([KEY, LK, MUTE_KEY, ACC_KEY], function (got) {
         db = Array.isArray(got[KEY]) ? got[KEY] : [];
         window.QAI18n.setLang(got[LK] || window.QAI18n.detect());
+        applyMute(got[MUTE_KEY] !== false);   // по умолчанию звук выключен
+        accountName = got[ACC_KEY] || null;
         resolve(db);
       });
     });
@@ -128,6 +133,110 @@
     return used.length;
   }
 
+
+  /* ---------- звук ---------- */
+
+  /* Флаг для mute.js (он в MAIN-мире и до chrome.storage не достаёт,
+     зато DOM у миров общий). */
+  function applyMute(on) {
+    document.documentElement.setAttribute("data-qa-mute", on === false ? "0" : "1");
+  }
+
+  /* ---------- очки по аккаунтам ---------- */
+
+  function parseNum(str) {
+    if (!str) return null;
+    var m = String(str).replace(/[\s\u00a0]/g, "").match(/\d[\d.,]*/);
+    if (!m) return null;
+    var n = parseInt(m[0].replace(/[.,]/g, ""), 10);
+    return isNaN(n) ? null : n;
+  }
+
+  /* Очки на странице. Сначала классы платформы, затем текст вида "123 taškai". */
+  function detectPoints() {
+    var sels = [".points-text", ".points", ".btn-points"];
+    for (var i = 0; i < sels.length; i++) {
+      var el = document.querySelector(sels[i]);
+      if (el) {
+        var n = parseNum(txt(el));
+        if (n !== null) return n;
+      }
+    }
+    var all = document.querySelectorAll("span, div, b, strong");
+    for (var j = 0; j < all.length; j++) {
+      var t = txt(all[j]);
+      if (t.length < 30 && /\d/.test(t) && /(ta\u0161k|point|bal)/i.test(t)) {
+        var v = parseNum(t);
+        if (v !== null) return v;
+      }
+    }
+    return null;
+  }
+
+  /* Имя аккаунта со страницы. Селекторы — предположение, поэтому есть
+     ручной ввод в панели, если распознать не вышло. */
+  function detectAccount() {
+    var sels = [
+      ".user-name", ".username", ".profile-name",
+      "[class*='user-name']", "[class*='profile-name']", "[class*='user-info']"
+    ];
+    for (var i = 0; i < sels.length; i++) {
+      var el = document.querySelector(sels[i]);
+      if (el) {
+        var t = txt(el);
+        if (t && t.length > 1 && t.length < 60) return t;
+      }
+    }
+    return null;
+  }
+
+  var accountName = null;
+
+  function accountKey(name) {
+    return window.QAMatch.normalize(name) || "unknown";
+  }
+
+  /* Очки только растут — храним максимум, увиденный на аккаунте. */
+  function recordPoints() {
+    var pts = detectPoints();
+    if (pts === null) return;
+    pointsState.current = pts;
+    var name = accountName || detectAccount();
+    if (!name) { pointsState.account = null; return; }
+    var key = accountKey(name);
+
+    chrome.storage.local.get(PTS_KEY, function (got) {
+      var map = (got && got[PTS_KEY]) || {};
+      var prev = map[key];
+      if (prev && prev.points >= pts && prev.label === name) return;
+      map[key] = {
+        points: prev ? Math.max(prev.points, pts) : pts,
+        label: name,
+        updated: Date.now()
+      };
+      var patch = {};
+      patch[PTS_KEY] = map;
+      chrome.storage.local.set(patch, function () {
+        pointsState = { current: pts, account: name };
+        refreshTotal(function () { if (ui && !formOpen) render(); });
+      });
+    });
+  }
+
+  var pointsState = { current: null, account: null };
+  var pointsTotal = 0;
+
+  /* Сумма очков по всем аккаунтам, на которых побывали. */
+  function refreshTotal(cb) {
+    chrome.storage.local.get(PTS_KEY, function (got) {
+      var map = (got && got[PTS_KEY]) || {};
+      pointsTotal = Object.keys(map).reduce(function (sum, k) {
+        return sum + (map[k].points || 0);
+      }, 0);
+      if (cb) cb();
+    });
+  }
+
   /* ---------- панель (Shadow DOM, чтобы стили сайта не мешали) ---------- */
 
   var PANEL_CSS = [
@@ -162,6 +271,12 @@
     ".opt{text-align:left;white-space:normal;font-weight:500;font-size:12.5px}",
     ".opt.on{background:#1f3a2a;border-color:#22c55e;color:#7fe0a5}",
     ".hint{font-size:11px;color:#6b7683;margin-top:6px}",
+    ".pts{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:9px;",
+    "border-top:1px solid #2a333d;font-size:11.5px;color:#9aa7b4}",
+    ".pts b{color:#f0a868;font-size:13px}",
+    ".pts .who{margin-left:auto;color:#6b7683;max-width:45%;overflow:hidden;",
+    "text-overflow:ellipsis;white-space:nowrap;cursor:pointer}",
+    ".pts .who:hover{color:#e8edf2;text-decoration:underline}",
     ".toast{position:fixed;right:18px;bottom:calc(18px + 100%);}",
     ".mini{padding:0}"
   ].join("");
@@ -242,6 +357,8 @@
         "</div>");
     }
 
+    parts.push(pointsRow());
+
     u.body.innerHTML = parts.join("");
     u.body.querySelector(".q").textContent = state.question;
 
@@ -255,6 +372,23 @@
     }
 
     bindActions();
+  }
+
+  /* Строка «очки текущего аккаунта / всего по аккаунтам». */
+  function pointsRow() {
+    if (pointsState.current === null && !pointsTotal) return "";
+    var who = pointsState.account || T("acc_unknown");
+    return '<div class="pts">' +
+      "<span>" + T("pts_now") + ' <b>' + (pointsState.current === null ? "—" : pointsState.current) + "</b></span>" +
+      "<span>" + T("pts_total") + ' <b>' + pointsTotal + "</b></span>" +
+      '<span class="who" data-act="rename" title="' + esc(who) + '">' + esc(who) + "</span>" +
+      "</div>";
+  }
+
+  function esc(t) {
+    return String(t || "").replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
   }
 
   function renderForm() {
@@ -332,6 +466,18 @@
         : [];
       formOpen = true;
       render();
+    } else if (act === "rename") {
+      var cur = pointsState.account || "";
+      var name = prompt(T("acc_prompt"), cur);
+      if (name === null) return;
+      name = name.trim();
+      var patch = {};
+      patch[ACC_KEY] = name || null;
+      chrome.storage.local.set(patch, function () {
+        accountName = name || null;
+        recordPoints();
+        setTimeout(render, 200);
+      });
     } else if (act === "cancel") {
       formOpen = false;
       pickedAnswers = [];
@@ -359,6 +505,8 @@
   /* ---------- основной цикл ---------- */
 
   function scan() {
+    recordPoints();
+
     var qEl = findQuestionEl();
     if (!qEl) {
       lastQuestion = "";
@@ -377,6 +525,7 @@
     }
 
     lastQuestion = qText;
+    recordPoints();
     clearHighlight();
 
     var options = collectOptions();
@@ -418,9 +567,13 @@
       window.QAI18n.setLang(ch[window.QAI18n.STORAGE_KEY].newValue);
       if (ui) render();
     }
+    if (ch[MUTE_KEY]) applyMute(ch[MUTE_KEY].newValue !== false);
+    if (ch[PTS_KEY]) refreshTotal(function () { if (ui && !formOpen) render(); });
+    if (ch[ACC_KEY]) { accountName = ch[ACC_KEY].newValue || null; recordPoints(); }
   });
 
   loadDb().then(function () {
+    refreshTotal();
     startObserver();
     scan();
   });
