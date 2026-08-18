@@ -41,7 +41,7 @@ Click several options for multi-answer questions. Saved questions are found imme
 The panel shows the current account's points and a running total across every account you have
 visited. Points are stored per account and only ever go up, so revisiting an account does not
 reset it. If the account name is not detected automatically, click it in the panel to set it
-by hand — the name is what points are keyed on.
+by hand - the name is what points are keyed on.
 
 The site's sound effects are muted by default. Toggle this in the extension window.
 Muting is done in the page's own JavaScript context, so it covers `<audio>` elements,
@@ -103,7 +103,7 @@ node tools/update-db.js ~/Downloads/ziniuzygis-atsakymai.json
 
 It merges the backup into the existing set, de-duplicates by question text (ignoring
 diacritics), rewrites `db.js` and `answers.json`, and bumps `SEED_VERSION`. Existing answers
-are never overwritten — a backup can only add questions or fill in an empty answer.
+are never overwritten - a backup can only add questions or fill in an empty answer.
 Both schemas are accepted: `{q, a}` (extension export) and `{question, answer}`.
 
 Then commit the three changed files. Users get the new questions on the next extension update,
@@ -114,7 +114,7 @@ Then commit the three changed files. Users get the new questions on the next ext
 ## Repository layout
 
 ```
-extension/        Chrome extension (MV3) — load this folder
+extension/        Chrome extension (MV3) - load this folder
   manifest.json
   content.js      panel + highlighting on the quiz page
   content.css
@@ -149,7 +149,7 @@ multi-answer questions highlight correctly.
 ## Notes
 
 - Data lives in `chrome.storage.local`, shared between the panel and the database window.
-- Image-based questions (`image_quiz`) have no option text, so they cannot be highlighted —
+- Image-based questions (`image_quiz`) have no option text, so they cannot be highlighted -
   the answer is shown in the panel only.
 - Site selectors (`.challenge-question`, `.btn-challenge-answer`) come from the Challenger
   Platform build used by ziniuzygis.lt; fallback heuristics are included in case they change.
