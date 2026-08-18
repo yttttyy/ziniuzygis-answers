@@ -36,6 +36,17 @@ Press **＋ Add to database**. The question is already filled in from the page, 
 options are listed as buttons - once the quiz reveals the correct one, just click it.
 Click several options for multi-answer questions. Saved questions are found immediately.
 
+### Points and sound
+
+The panel shows the current account's points and a running total across every account you have
+visited. Points are stored per account and only ever go up, so revisiting an account does not
+reset it. If the account name is not detected automatically, click it in the panel to set it
+by hand — the name is what points are keyed on.
+
+The site's sound effects are muted by default. Toggle this in the extension window.
+Muting is done in the page's own JavaScript context, so it covers `<audio>` elements,
+detached `new Audio()` objects and the WebAudio API alike.
+
 ### The database window
 
 Click the extension icon to open the full list: search, edit, delete, 💾 export to JSON,
@@ -110,6 +121,7 @@ extension/        Chrome extension (MV3) — load this folder
   popup.html/js   database window
   match.js        text normalisation + fuzzy matching
   i18n.js         EN / RU / LT translations
+  mute.js         silences the site (runs in the page's own JS context)
   db.js           built-in set of 700+ questions
   background.js   seeding and top-up on update
 data/
