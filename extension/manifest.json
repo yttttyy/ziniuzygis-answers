@@ -3,8 +3,13 @@
   "name": "Žinių žygis — база ответов",
   "version": "1.0.0",
   "description": "Находит вопрос на ziniuzygis.lt, подсвечивает верный ответ из базы, позволяет копировать вопрос и добавлять новые ответы.",
-  "permissions": ["storage", "clipboardWrite"],
-  "host_permissions": ["https://ziniuzygis.lt/*"],
+  "permissions": [
+    "storage",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://ziniuzygis.lt/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -24,9 +29,28 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://ziniuzygis.lt/*"],
-      "js": ["i18n.js", "match.js", "content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "https://ziniuzygis.lt/*"
+      ],
+      "js": [
+        "mute.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://ziniuzygis.lt/*"
+      ],
+      "js": [
+        "i18n.js",
+        "match.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_idle",
       "all_frames": false
     }
