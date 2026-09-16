@@ -4,6 +4,7 @@
 
   var KEY = "qa_db_v1";
   var MUTE_KEY = "qa_mute";
+  var LAST_KEY = "qa_last";
   var T = function (k, v) { return window.QAI18n.t(k, v); };
   var data = [];
   var query = "";
@@ -111,11 +112,13 @@
 
   /* ---------- модалка ---------- */
 
+  /* item с id — правим запись; item без id — новая запись с подставленными полями. */
   function openModal(item) {
-    $("#modalTitle").textContent = item ? T("modal_edit") : T("modal_add");
-    $("#editId").value = item ? item.id : "";
-    $("#qInput").value = item ? item.q : "";
-    $("#aInput").value = item ? item.a : "";
+    var editing = !!(item && item.id);
+    $("#modalTitle").textContent = editing ? T("modal_edit") : T("modal_add");
+    $("#editId").value = editing ? item.id : "";
+    $("#qInput").value = item ? (item.q || "") : "";
+    $("#aInput").value = item ? (item.a || "") : "";
     overlay.classList.add("show");
     setTimeout(function () { $("#qInput").focus(); }, 40);
   }
@@ -136,7 +139,7 @@
       data.unshift({ id: uid(), q: q, a: a, source: "mine" });
       toast(T("t_added"));
     }
-    save().then(function () { render(); });
+    save().then(function () { render(); renderLast(); });
     closeModal();
   }
 
@@ -206,6 +209,45 @@
     reader.readAsText(file);
   }
 
+  /* ---------- последний отвеченный вопрос ---------- */
+
+  /* Вопрос со страницы пропадает сразу после ответа. Эта секция даёт вернуться
+     к записи, которая подсказала ответ, если подсказка оказалась неверной. */
+  var lastRec = null;
+
+  function renderLast() {
+    chrome.storage.local.get(LAST_KEY, function (got) {
+      lastRec = got[LAST_KEY] || null;
+      var box = $("#lastBox");
+      if (!lastRec || !lastRec.q) { box.style.display = "none"; return; }
+
+      box.style.display = "";
+      $("#lastTitle").textContent = T("last_title");
+      $("#lastQ").textContent = lastRec.q;
+      $("#lastPick").innerHTML = lastRec.clicked
+        ? esc(T("last_picked")) + " <b>" + esc(lastRec.clicked) + "</b>"
+        : esc(T("last_nomatch"));
+
+      var known = lastRec.entryId &&
+        data.some(function (x) { return x.id === lastRec.entryId; });
+      $("#lastFix").textContent = T("last_fix");
+      $("#lastFix").style.display = known ? "" : "none";
+      $("#lastNew").textContent = T("last_new");
+    });
+  }
+
+  function fixLast() {
+    if (!lastRec) return;
+    var entry = data.filter(function (x) { return x.id === lastRec.entryId; })[0];
+    if (!entry) { toast(T("last_gone")); renderLast(); return; }
+    openModal(entry);
+  }
+
+  function addLastAsNew() {
+    if (!lastRec) return;
+    openModal({ q: lastRec.q, a: "" });   // без id — заведётся новая запись
+  }
+
   /* ---------- звук ---------- */
 
   function renderMute() {
@@ -239,6 +281,7 @@
     $("#saveBtn").textContent = T("save");
     $("#langSel").title = T("lang_label");
     $("#muteLabel").textContent = T("mute");
+    renderLast();
     document.documentElement.lang = window.QAI18n.getLang();
   }
 
@@ -248,6 +291,7 @@
     applyStaticI18n();
     render();
     renderMute();
+    renderLast();
     if (persist) {
       var patch = {};
       patch[window.QAI18n.STORAGE_KEY] = window.QAI18n.getLang();
@@ -301,6 +345,8 @@
   $("#saveBtn").addEventListener("click", saveModal);
   $("#saveFileBtn").addEventListener("click", saveToFile);
   $("#muteChk").addEventListener("change", function (e) { setMute(e.target.checked); });
+  $("#lastFix").addEventListener("click", fixLast);
+  $("#lastNew").addEventListener("click", addLastAsNew);
   $("#importBtn").addEventListener("click", function () { $("#importFile").click(); });
   $("#importFile").addEventListener("change", function (e) {
     if (e.target.files && e.target.files[0]) importFile(e.target.files[0]);
@@ -321,6 +367,7 @@
       render();
     }
     if (ch[MUTE_KEY]) renderMute();
+    if (ch[LAST_KEY]) renderLast();
   });
 
   /* ---------- старт ---------- */

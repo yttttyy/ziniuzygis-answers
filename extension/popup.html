@@ -82,6 +82,12 @@
     background:var(--panel); border:1px solid var(--line); border-radius:11px;
     padding:10px 12px; margin-bottom:12px;
   }
+  .panelbox h3{margin:0 0 7px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px}
+  .lastq{font-size:13px; font-weight:600; max-height:70px; overflow:auto; margin-bottom:6px}
+  .lastpick{font-size:12px; color:var(--muted); margin-bottom:9px}
+  .lastpick b{color:var(--accent2)}
+  .lastrow{display:flex; gap:7px; flex-wrap:wrap}
+  .lastrow .btn{font-size:12px; padding:7px 10px}
   .muterow{display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer}
   .muterow input{width:15px; height:15px; accent-color:var(--accent); cursor:pointer}
   .toast{
@@ -118,6 +124,15 @@
 </header>
 
 <main>
+  <div class="panelbox" id="lastBox" style="display:none">
+    <h3 id="lastTitle"></h3>
+    <div class="lastq" id="lastQ"></div>
+    <div class="lastpick" id="lastPick"></div>
+    <div class="lastrow">
+      <button class="btn" id="lastFix"></button>
+      <button class="btn" id="lastNew"></button>
+    </div>
+  </div>
   <div class="panelbox">
     <label class="muterow"><input type="checkbox" id="muteChk"><span id="muteLabel"></span></label>
   </div>
