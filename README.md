@@ -44,6 +44,14 @@ When an answer *is* found there are two separate buttons, and the difference mat
   different questions share the same heading, so the match was simply the wrong question.
   The answer field starts empty, because the found answer belongs to a different question.
 
+### Last answered question
+
+The question disappears from the page the moment you answer, so a wrong answer in the database
+would be unfixable once you had clicked it. The extension window therefore keeps the last
+question you answered, together with the option you picked and a link to the entry that
+suggested it - **✎ Fix the entry** corrects that entry in place, **＋ Add as new** files the
+question separately.
+
 ### Sound
 
 The site's sound effects are muted by default. Toggle this in the extension window.
