@@ -13,7 +13,11 @@
   // Селекторы сайта (подтверждены по CSS-бандлу платформы Challenger)
   var SEL_QUESTION = ".challenge-question";
   var SEL_CONTENT = ".challenge-content";
-  var SEL_OPTIONS = ".btn-challenge-answer, .answer-cell";
+  /* Варианты ответа бывают трёх видов:
+       .btn-challenge-answer - кнопки (одиночный выбор)
+       .checkbox / .radio    - строки с галочкой (множественный выбор)
+       .answer-cell          - картиночные квизы */
+  var SEL_OPTIONS = ".btn-challenge-answer, .answer-cell, .checkbox, .radio";
 
   var db = [];
   var T = function (k, v) { return window.QAI18n.t(k, v); };
@@ -114,10 +118,16 @@
     var scope = document.querySelector(SEL_CONTENT) || document;
     var nodes = scope.querySelectorAll(SEL_OPTIONS);
     var out = [];
+    var seen = [];
     for (var i = 0; i < nodes.length; i++) {
-      var t = txt(nodes[i]);
-      if (!t) t = (nodes[i].getAttribute("alt") || nodes[i].getAttribute("title") || "").trim();
-      out.push({ el: nodes[i], text: t });
+      var node = nodes[i];
+      var t = txt(node);
+      if (!t) t = (node.getAttribute("alt") || node.getAttribute("title") || "").trim();
+      // у галочек рамку вешаем на всю строку (label), а не на текст внутри неё
+      var target = (node.closest && node.closest("label")) || node;
+      if (seen.indexOf(target) >= 0) continue;
+      seen.push(target);
+      out.push({ el: target, text: t });
     }
     return out;
   }
