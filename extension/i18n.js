@@ -57,6 +57,12 @@
       t_a_copied: "Ответ скопирован",
       t_added_db: "Добавлено в базу ✓",
       mute: "Выключить звук сайта",
+      last_title: "Последний отвеченный вопрос",
+      last_picked: "выбрано:",
+      last_nomatch: "подсказки из базы не было",
+      last_fix: "✎ Исправить запись",
+      last_new: "＋ Добавить как новый",
+      last_gone: "Этой записи в базе больше нет",
       lang_label: "Язык"
     },
 
@@ -113,6 +119,12 @@
       t_a_copied: "Answer copied",
       t_added_db: "Added to the database ✓",
       mute: "Mute the site",
+      last_title: "Last answered question",
+      last_picked: "picked:",
+      last_nomatch: "no suggestion came from the database",
+      last_fix: "✎ Fix the entry",
+      last_new: "＋ Add as new",
+      last_gone: "That entry is no longer in the database",
       lang_label: "Language"
     },
 
@@ -169,6 +181,12 @@
       t_a_copied: "Atsakymas nukopijuotas",
       t_added_db: "Pridėta į bazę ✓",
       mute: "Išjungti svetainės garsą",
+      last_title: "Paskutinis atsakytas klausimas",
+      last_picked: "pasirinkta:",
+      last_nomatch: "bazė nieko nepasiūlė",
+      last_fix: "✎ Taisyti įrašą",
+      last_new: "＋ Pridėti kaip naują",
+      last_gone: "Šio įrašo bazėje nebėra",
       lang_label: "Kalba"
     }
   };
