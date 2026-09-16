@@ -7,6 +7,7 @@
 
   var KEY = "qa_db_v1";
   var MUTE_KEY = "qa_mute";        // глушить ли звук сайта
+  var LAST_KEY = "qa_last";        // последний отвеченный вопрос
   var HL = "qa-ext-correct";
 
   // Селекторы сайта (подтверждены по CSS-бандлу платформы Challenger)
@@ -146,6 +147,34 @@
       }
     });
     return used.length;
+  }
+
+  /* ---------- последний отвеченный вопрос ---------- */
+
+  /* Вопрос со страницы исчезает сразу после ответа. Если в базе оказался
+     неверный ответ и по нему уже кликнули, править было бы нечего — поэтому
+     запоминаем вопрос вместе со ссылкой на запись, которая его подсказала.
+     Слушаем в фазе перехвата: сайт может остановить всплытие. */
+  function rememberAnswered(e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var opt = t.closest(SEL_OPTIONS);
+    if (!opt) return;
+
+    var qEl = findQuestionEl();
+    var qText = qEl ? txt(qEl) : "";
+    if (!qText) return;
+
+    var m = window.QAMatch.bestMatch(qText, db);
+    var patch = {};
+    patch[LAST_KEY] = {
+      q: qText,
+      clicked: txt(opt),
+      entryId: m ? m.entry.id : null,
+      entryA: m ? m.entry.a : "",
+      ts: Date.now()
+    };
+    chrome.storage.local.set(patch);
   }
 
   /* ---------- звук ---------- */
@@ -467,6 +496,8 @@
     }
     if (ch[MUTE_KEY]) applyMute(ch[MUTE_KEY].newValue !== false);
   });
+
+  document.addEventListener("click", rememberAnswered, true);
 
   loadDb().then(function () {
     startObserver();
