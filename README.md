@@ -36,12 +36,15 @@ Press **＋ Add to database**. The question is already filled in from the page, 
 options are listed as buttons - once the quiz reveals the correct one, just click it.
 Click several options for multi-answer questions. Saved questions are found immediately.
 
-### Points and sound
+When an answer *is* found there are two separate buttons, and the difference matters:
 
-The panel shows the current account's points and a running total across every account you have
-visited. Points are stored per account and only ever go up, so revisiting an account does not
-reset it. If the account name is not detected automatically, click it in the panel to set it
-by hand - the name is what points are keyed on.
+- **✎ Fix** edits the entry that was found. Use it when the question is right but its
+  stored answer is wrong.
+- **＋ New** creates a separate entry and leaves the existing one alone. Use it when several
+  different questions share the same heading, so the match was simply the wrong question.
+  The answer field starts empty, because the found answer belongs to a different question.
+
+### Sound
 
 The site's sound effects are muted by default. Toggle this in the extension window.
 Muting is done in the page's own JavaScript context, so it covers `<audio>` elements,
