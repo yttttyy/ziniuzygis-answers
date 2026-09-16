@@ -130,7 +130,8 @@
   /* Подсвечивает все варианты, соответствующие сохранённому ответу.
      Ответ может содержать несколько строк — тогда верных вариантов несколько. */
   function highlightAnswers(answer, options) {
-    var parts = String(answer || "").split("\n")
+    // в паре записей варианты разделены " | ", а не переносом строки
+    var parts = String(answer || "").split(/\n|\s\|\s/)
       .map(function (s) { return s.trim(); })
       .filter(function (s) { return s.length > 0; });
     if (!parts.length || !options.length) return 0;
