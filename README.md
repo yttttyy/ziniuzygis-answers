@@ -162,8 +162,11 @@ multi-answer questions highlight correctly.
 - Data lives in `chrome.storage.local`, shared between the panel and the database window.
 - Image-based questions (`image_quiz`) have no option text, so they cannot be highlighted -
   the answer is shown in the panel only.
-- Site selectors (`.challenge-question`, `.btn-challenge-answer`) come from the Challenger
-  Platform build used by ziniuzygis.lt; fallback heuristics are included in case they change.
+- Site selectors come from the Challenger Platform build used by ziniuzygis.lt, verified
+  against the live site: single-choice questions render as `button.btn-challenge-answer`,
+  multiple-choice ones as `label > .checkbox`, and image quizzes as `.answer-cell`.
+  For checkbox rows the whole label is outlined, not just its text.
+  Fallback heuristics are included in case the markup changes.
 
 ## License
 
