@@ -3,7 +3,6 @@
   "use strict";
 
   var KEY = "qa_db_v1";
-  var PTS_KEY = "qa_points";
   var MUTE_KEY = "qa_mute";
   var T = function (k, v) { return window.QAI18n.t(k, v); };
   var data = [];
@@ -207,27 +206,10 @@
     reader.readAsText(file);
   }
 
-  /* ---------- очки и звук ---------- */
+  /* ---------- звук ---------- */
 
-  function renderPoints() {
-    chrome.storage.local.get([PTS_KEY, MUTE_KEY], function (got) {
-      var map = (got && got[PTS_KEY]) || {};
-      var keys = Object.keys(map).sort(function (a, b) {
-        return (map[b].points || 0) - (map[a].points || 0);
-      });
-
-      var box = $("#ptsList");
-      if (!keys.length) {
-        box.innerHTML = '<div style="color:var(--muted);font-size:12px">' + esc(T("points_empty")) + "</div>";
-      } else {
-        box.innerHTML = keys.map(function (k) {
-          return '<div class="prow"><span class="nm">' + esc(map[k].label || k) +
-                 '</span><span class="pv">' + (map[k].points || 0) + "</span></div>";
-        }).join("");
-      }
-
-      var total = keys.reduce(function (sum, k) { return sum + (map[k].points || 0); }, 0);
-      $("#ptsTotal").textContent = total;
+  function renderMute() {
+    chrome.storage.local.get(MUTE_KEY, function (got) {
       $("#muteChk").checked = got[MUTE_KEY] !== false;   // по умолчанию звук выключен
     });
   }
@@ -236,16 +218,6 @@
     var patch = {};
     patch[MUTE_KEY] = !!on;
     chrome.storage.local.set(patch);
-  }
-
-  function resetPoints() {
-    if (!confirm(T("points_confirm"))) return;
-    var patch = {};
-    patch[PTS_KEY] = {};
-    chrome.storage.local.set(patch, function () {
-      renderPoints();
-      toast(T("t_deleted"));
-    });
   }
 
   /* ---------- язык ---------- */
@@ -266,10 +238,7 @@
     $("#cancelBtn").textContent = T("cancel");
     $("#saveBtn").textContent = T("save");
     $("#langSel").title = T("lang_label");
-    $("#ptsTitle").textContent = T("points_title");
-    $("#ptsTotalLabel").textContent = T("pts_total");
     $("#muteLabel").textContent = T("mute");
-    $("#ptsReset").textContent = T("points_reset");
     document.documentElement.lang = window.QAI18n.getLang();
   }
 
@@ -278,7 +247,7 @@
     $("#langSel").value = window.QAI18n.getLang();
     applyStaticI18n();
     render();
-    renderPoints();
+    renderMute();
     if (persist) {
       var patch = {};
       patch[window.QAI18n.STORAGE_KEY] = window.QAI18n.getLang();
@@ -332,7 +301,6 @@
   $("#saveBtn").addEventListener("click", saveModal);
   $("#saveFileBtn").addEventListener("click", saveToFile);
   $("#muteChk").addEventListener("change", function (e) { setMute(e.target.checked); });
-  $("#ptsReset").addEventListener("click", resetPoints);
   $("#importBtn").addEventListener("click", function () { $("#importFile").click(); });
   $("#importFile").addEventListener("change", function (e) {
     if (e.target.files && e.target.files[0]) importFile(e.target.files[0]);
@@ -352,7 +320,7 @@
       data = Array.isArray(ch[KEY].newValue) ? ch[KEY].newValue : data;
       render();
     }
-    if (ch[PTS_KEY] || ch[MUTE_KEY]) renderPoints();
+    if (ch[MUTE_KEY]) renderMute();
   });
 
   /* ---------- старт ---------- */
