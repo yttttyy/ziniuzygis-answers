@@ -95,13 +95,20 @@
   }
 
   /* Лучший из вариантов на странице для сохранённого ответа.
-     options: [{el, text}] → {option, score} | null */
+     options: [{el, text}] → {option, score} | null
+
+     Ничьи разрешаем по dice — так же, как в bestMatch. Без этого ответ
+     «Pietų Prūsija» одинаково хорошо ложится и на «Prūsija» (короткий вариант
+     целиком входит в ответ, score 1.0), и побеждал бы тот, что выше в списке. */
   function bestOption(answerText, options, threshold) {
     var th = typeof threshold === "number" ? threshold : 0.45;
     var best = null;
     for (var i = 0; i < options.length; i++) {
-      var s = score(answerText, options[i].text);
-      if (!best || s > best.score) best = { option: options[i], score: s };
+      var d = scoreDetail(answerText, options[i].text);
+      if (!best || d.score > best.score ||
+          (d.score === best.score && d.dice > best.dice)) {
+        best = { option: options[i], score: d.score, dice: d.dice };
+      }
     }
     if (best && best.score >= th) return best;
     return null;
