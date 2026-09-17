@@ -139,11 +139,16 @@
 
   /* Подсвечивает все варианты, соответствующие сохранённому ответу.
      Ответ может содержать несколько строк — тогда верных вариантов несколько. */
+  var expectedParts = 0;
+
   function highlightAnswers(answer, options) {
     // в паре записей варианты разделены " | ", а не переносом строки
     var parts = String(answer || "").split(/\n|\s\|\s/)
       .map(function (s) { return s.trim(); })
       .filter(function (s) { return s.length > 0; });
+    // строки вроде "-" смысла не несут - в ожидаемые не считаем
+    parts = parts.filter(function (p) { return window.QAMatch.normalize(p); });
+    expectedParts = parts.length;
     if (!parts.length || !options.length) return 0;
 
     var used = [];
@@ -321,7 +326,7 @@
       u.body.querySelector(".ans").textContent = state.match.entry.a || T("no_answer");
       var pct = Math.round(state.match.score * 100);
       var hl = state.hlCount
-        ? T("panel_hl_count", { n: state.hlCount })
+        ? T("panel_hl_count", { n: state.hlCount, total: state.hlExpected })
         : T("panel_hl_none");
       u.body.querySelector(".score").textContent = T("panel_match", { pct: pct, hl: hl });
     }
@@ -473,7 +478,8 @@
     var m = window.QAMatch.bestMatch(qText, db);
     var count = m ? highlightAnswers(m.entry.a, options) : 0;
 
-    state = { question: qText, match: m, options: options, hlCount: count };
+    state = { question: qText, match: m, options: options,
+              hlCount: count, hlExpected: expectedParts };
     if (!formOpen) render(); else renderForm();
   }
 
