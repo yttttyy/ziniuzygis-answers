@@ -44,6 +44,16 @@
         "https://ziniuzygis.lt/*"
       ],
       "js": [
+        "orig.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://ziniuzygis.lt/*"
+      ],
+      "js": [
         "i18n.js",
         "match.js",
         "content.js"
