@@ -52,6 +52,19 @@ question you answered, together with the option you picked and a link to the ent
 suggested it - **✎ Fix the entry** corrects that entry in place, **＋ Add as new** files the
 question separately.
 
+### Browser translation
+
+If you turn the browser's page translator on, the site's text is rewritten in the DOM, and a
+naive reading of the page would compare translated text against a Lithuanian database - nothing
+would match. A script running at `document_start` therefore copies the original text of the
+question and of every option into a `data-qa-orig` attribute before the translator gets to it;
+`data-*` attributes are left alone by translators, so the original survives. Matching always
+uses that original, while you keep reading the translated page.
+
+The copy is refreshed only while an element is still untranslated (Google Translate wraps
+translated text in `<font>`), so questions that reuse the same DOM nodes stay correct.
+If the original could not be captured, the panel says so instead of silently mismatching.
+
 ### Sound
 
 The site's sound effects are muted by default. Toggle this in the extension window.
@@ -133,6 +146,7 @@ extension/        Chrome extension (MV3) - load this folder
   match.js        text normalisation + fuzzy matching
   i18n.js         EN / RU / LT translations
   mute.js         silences the site (runs in the page's own JS context)
+  orig.js         keeps the original text when the page is translated
   db.js           built-in set of 700+ questions
   background.js   seeding and top-up on update
 data/
