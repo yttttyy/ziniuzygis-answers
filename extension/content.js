@@ -37,6 +37,23 @@
     return (el.innerText || el.textContent || "").replace(/\s+/g, " ").trim();
   }
 
+  /* Текст для сопоставления. Если включён переводчик страницы, видимый текст
+     переведён и с базой не сойдётся - берём оригинал, припрятанный orig.js. */
+  function srcText(el) {
+    if (!el) return "";
+    var orig = el.getAttribute && el.getAttribute("data-qa-orig");
+    return orig ? orig.replace(/\s+/g, " ").trim() : txt(el);
+  }
+
+  /* Страница переведена браузером? Google Translate помечает <html>
+     и оборачивает текст в <font>. */
+  function pageTranslated() {
+    var h = document.documentElement;
+    if (h.classList.contains("translated-ltr") || h.classList.contains("translated-rtl")) return true;
+    var box = document.querySelector(SEL_CONTENT);
+    return !!(box && box.querySelector("font"));
+  }
+
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
@@ -121,7 +138,7 @@
     var seen = [];
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
-      var t = txt(node);
+      var t = srcText(node);
       if (!t) t = (node.getAttribute("alt") || node.getAttribute("title") || "").trim();
       // у галочек рамку вешаем на всю строку (label), а не на текст внутри неё
       var target = (node.closest && node.closest("label")) || node;
@@ -178,14 +195,14 @@
     if (!opt) return;
 
     var qEl = findQuestionEl();
-    var qText = qEl ? txt(qEl) : "";
+    var qText = qEl ? srcText(qEl) : "";
     if (!qText) return;
 
     var m = window.QAMatch.bestMatch(qText, db);
     var patch = {};
     patch[LAST_KEY] = {
       q: qText,
-      clicked: txt(opt),
+      clicked: srcText(opt),
       entryId: m ? m.entry.id : null,
       entryA: m ? m.entry.a : "",
       ts: Date.now()
@@ -238,6 +255,8 @@
     ".opt{text-align:left;white-space:normal;font-weight:500;font-size:12.5px}",
     ".opt.on{background:#1f3a2a;border-color:#22c55e;color:#7fe0a5}",
     ".hint{font-size:11px;color:#6b7683;margin-top:6px}",
+    ".warn{margin-top:9px;padding:7px 9px;border-radius:8px;background:#3a2a17;",
+    "color:#f0a868;font-size:11.5px;line-height:1.35}",
     ".toast{position:fixed;right:18px;bottom:calc(18px + 100%);}",
     ".mini{padding:0}"
   ].join("");
@@ -319,8 +338,11 @@
         "</div>");
     }
 
+    if (state.warnTranslated) parts.push('<div class="warn"></div>');
+
     u.body.innerHTML = parts.join("");
     u.body.querySelector(".q").textContent = state.question;
+    if (state.warnTranslated) u.body.querySelector(".warn").textContent = T("warn_translated");
 
     if (found) {
       u.body.querySelector(".ans").textContent = state.match.entry.a || T("no_answer");
@@ -462,7 +484,7 @@
       return;
     }
 
-    var qText = txt(qEl);
+    var qText = srcText(qEl);
     if (!qText) return;
 
     var stillOk = highlighted.length && highlighted.every(function (el) { return el.isConnected; });
@@ -472,6 +494,7 @@
     }
 
     lastQuestion = qText;
+    var hadOriginal = !!(qEl.getAttribute && qEl.getAttribute("data-qa-orig"));
     clearHighlight();
 
     var options = collectOptions();
@@ -479,7 +502,10 @@
     var count = m ? highlightAnswers(m.entry.a, options) : 0;
 
     state = { question: qText, match: m, options: options,
-              hlCount: count, hlExpected: expectedParts };
+              hlCount: count, hlExpected: expectedParts,
+              // перевод включён, а оригинал перехватить не успели - сопоставление
+              // идёт по переведённому тексту и почти наверняка промахнётся
+              warnTranslated: pageTranslated() && !hadOriginal };
     if (!formOpen) render(); else renderForm();
   }
 
