@@ -149,6 +149,55 @@
     return out;
   }
 
+  /* Поле для ввода ответа: часть заданий просит вписать число или слово,
+     вариантов-кнопок там нет вовсе. */
+  function findAnswerInput() {
+    var scope = document.querySelector(SEL_CONTENT);
+    if (!scope) return null;
+    var nodes = scope.querySelectorAll("input, textarea");
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var t = (el.type || "text").toLowerCase();
+      if (el.tagName !== "TEXTAREA" && ["text", "number", "search", "tel"].indexOf(t) < 0) continue;
+      if (el.disabled || el.readOnly) continue;
+      if (!el.getClientRects().length) continue;   // скрытое поле не трогаем
+      return el;
+    }
+    return null;
+  }
+
+  /* Присвоить .value мало: Vue держит своё состояние и узнаёт об изменении
+     только из события input. Пишем через нативный сеттер, чтобы фреймворк
+     не считал значение «своим» и не откатил его. */
+  function setFieldValue(el, value) {
+    var proto = el.tagName === "TEXTAREA"
+      ? window.HTMLTextAreaElement.prototype
+      : window.HTMLInputElement.prototype;
+    var desc = Object.getOwnPropertyDescriptor(proto, "value");
+    if (desc && desc.set) desc.set.call(el, value); else el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  var filledFor = null;   // для какого вопроса уже подставляли
+
+  /* Подставляет ответ в поле. Не трогает то, что пользователь ввёл сам,
+     и не нажимает кнопку отправки - отправляет он. */
+  function fillAnswer(el, answer, qText, force) {
+    if (!el) return false;
+    if (!force && filledFor === qText) return true;
+    if (!force && el.value && el.value.trim()) return false;
+
+    var val = String(answer || "").split(/\n|\s\|\s/)[0].trim();
+    if (!val) return false;
+
+    setFieldValue(el, val);
+    filledFor = qText;
+    if (!el.classList.contains(HL)) el.classList.add(HL);
+    highlighted.push(el);
+    return true;
+  }
+
   function clearHighlight() {
     highlighted.forEach(function (el) { el.classList.remove(HL); });
     highlighted = [];
@@ -338,6 +387,9 @@
         "</div>");
     }
 
+    if (found && state.hasInput) {
+      parts.push('<div class="row"><button data-act="fill">' + T("btn_fill") + "</button></div>");
+    }
     if (state.warnTranslated) parts.push('<div class="warn"></div>');
 
     u.body.innerHTML = parts.join("");
@@ -347,9 +399,10 @@
     if (found) {
       u.body.querySelector(".ans").textContent = state.match.entry.a || T("no_answer");
       var pct = Math.round(state.match.score * 100);
-      var hl = state.hlCount
-        ? T("panel_hl_count", { n: state.hlCount, total: state.hlExpected })
-        : T("panel_hl_none");
+      var hl;
+      if (state.hasInput) hl = state.filled ? T("panel_filled") : T("panel_fill_hint");
+      else if (state.hlCount) hl = T("panel_hl_count", { n: state.hlCount, total: state.hlExpected });
+      else hl = T("panel_hl_none");
       u.body.querySelector(".score").textContent = T("panel_match", { pct: pct, hl: hl });
     }
 
@@ -434,6 +487,15 @@
       pickedAnswers = [];
       formOpen = true;
       render();
+    } else if (act === "fill") {
+      var el = findAnswerInput();
+      // по кнопке подставляем даже поверх уже введённого - это явное действие
+      if (el && state.match && fillAnswer(el, state.match.entry.a, state.question, true)) {
+        el.focus();
+        flash(T("t_filled"));
+      } else {
+        flash(T("t_fill_failed"));
+      }
     } else if (act === "fix") {
       // правим ту самую запись, что нашлась
       formMode = "edit";
@@ -501,8 +563,13 @@
     var m = window.QAMatch.bestMatch(qText, db);
     var count = m ? highlightAnswers(m.entry.a, options) : 0;
 
+    // задания без вариантов просят вписать ответ руками - подставим сами
+    var inputEl = findAnswerInput();
+    var filled = m ? fillAnswer(inputEl, m.entry.a, qText, false) : false;
+
     state = { question: qText, match: m, options: options,
               hlCount: count, hlExpected: expectedParts,
+              hasInput: !!inputEl, filled: filled,
               // перевод включён, а оригинал перехватить не успели - сопоставление
               // идёт по переведённому тексту и почти наверняка промахнётся
               warnTranslated: pageTranslated() && !hadOriginal };
