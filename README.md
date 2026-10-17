@@ -52,6 +52,16 @@ question you answered, together with the option you picked and a link to the ent
 suggested it - **✎ Fix the entry** corrects that entry in place, **＋ Add as new** files the
 question separately.
 
+### Questions you type the answer into
+
+Some challenges have no options at all - they ask you to type a number or a word. When the
+answer is in the database the extension fills the field for you and outlines it, leaving the
+submit button to you. It never overwrites something you typed yourself; the panel's
+**Fill the field** button does overwrite, since pressing it is a deliberate choice.
+
+Filling goes through the field's native value setter plus `input`/`change` events, so the
+site's Vue model actually picks the value up instead of reverting it.
+
 ### Browser translation
 
 If you turn the browser's page translator on, the site's text is rewritten in the DOM, and a
